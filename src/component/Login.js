@@ -1,7 +1,48 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Box, Button, TextField, Typography } from '@mui/material';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
-const Login = () => {
+function Login() {
+  const emailRef = useRef();
+  const pwdRef = useRef();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    emailRef.current.focus();
+  }, []);
+
+  async function fnLogin() {
+    // 로그인 버튼 누르면
+    // fnLogin 함수에서 콘솔로 입력한 이메일, 비밀번호 출력
+    // console.log(emailRef.current.value);
+    // console.log(pwdRef.current.value);
+    try {
+      const res = await axios.post("http://localhost:3100/user",
+        {
+          email: emailRef.current.value,
+          password: pwdRef.current.value
+        });
+
+      if (res.data.success) {
+        // 리턴된 토큰을 localStorage에 저장
+        localStorage.setItem("token", res.data.token);
+
+        const token = res.data.token; // 서버에서 받은 토큰
+        const dToken = jwtDecode(token); // 디코딩
+        console.log(dToken); // 데이터 확인
+        console.log(token);
+        
+        navigate("/main");
+      } else {
+        alert("아이디/비밀번호 다시 확인");
+      }
+    } catch (err) {
+      console.log("오류 발생");
+    }
+  }
+
   return (
     <Box
       display="flex"
@@ -11,22 +52,22 @@ const Login = () => {
       height="100vh"
       sx={{ backgroundColor: '#f0f4f8', padding: 3 }}
     >
-      <Box 
-        sx={{ 
-          width: '100%', 
-          maxWidth: '400px', 
-          padding: '20px',  
-          backgroundColor: '#fff', 
-          boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',  
-          borderRadius: '8px' 
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: '400px',
+          padding: '20px',
+          backgroundColor: '#fff',
+          boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+          borderRadius: '8px'
         }}
       >
         <Typography variant="h4" mb={3} align="center">
           로그인
         </Typography>
-        <TextField label="이메일" variant="outlined" fullWidth margin="normal" />
-        <TextField label="비밀번호" variant="outlined" type="password" fullWidth margin="normal" />
-        <Button variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
+        <TextField inputRef={emailRef} label="이메일" variant="outlined" fullWidth margin="normal" />
+        <TextField inputRef={pwdRef} label="비밀번호" variant="outlined" type="password" fullWidth margin="normal" />
+        <Button onClick={fnLogin} variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
           로그인
         </Button>
         <Typography mt={2} align="center">
